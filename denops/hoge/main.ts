@@ -34,7 +34,7 @@ export async function main(denops: Denops): Promise<void> {
 
       // const { expr, params } = bufname.parse(await fn.bufname(denops, "%"));
       // const res = await s3();
-      const res = "This is the result.";
+      const res = await s3();
 
       await batch.batch(denops, async (denops) => {
         await vars.b.set(denops, "s3_content", res);
