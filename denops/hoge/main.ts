@@ -13,13 +13,14 @@ import {
 } from "./deps.ts";
 import { s3 } from "./s3.ts";
 
-const bufferName = "buf";
-
 export async function main(denops: Denops): Promise<void> {
   denops.dispatcher = {
-    async s3(x: unknown) {
-      const text = "this is s3 plugin";
-      await openBuffer(denops, text);
+    async s3(bucketName?: unknown) {
+      if (!bucketName) {
+        bucketName = "*";
+      }
+      unknownutil.ensureString(bucketName);
+      await openBuffer(denops, bucketName);
     },
 
     async read() {
@@ -32,10 +33,15 @@ export async function main(denops: Denops): Promise<void> {
         );
       });
 
-      // const { expr, params } = bufname.parse(await fn.bufname(denops, "%"));
-      // const res = await s3();
-      const res = await s3();
-
+      const bufferName = await fn.bufname(denops, "%");
+      // Bucket:bucketName -> Bucket, bucketName
+      const bucketName = bufferName.split(":")[1];
+      let res: string;
+      if (bucketName != "*") {
+        res = await s3(bucketName);
+      } else {
+        res = await s3();
+      }
       await batch.batch(denops, async (denops) => {
         await vars.b.set(denops, "s3_content", res);
         await fn.setline(denops, 1, res);
@@ -49,26 +55,17 @@ export async function main(denops: Denops): Promise<void> {
     helper.remove();
     helper.define(
       "BufReadCmd",
-      bufferName,
+      "Bucket:*",
       `call denops#notify("${denops.name}", "read", [])`
     );
   });
 
   await denops.cmd(
-    `command! -nargs=* S3 call denops#notify("${denops.name}", "s3", "")`
-    // `command! -nargs=0 S3 call denops#notify("${denops.name}", "s3", "[<q-args>]")`
+    `command! -nargs=? S3 call denops#notify("${denops.name}", "s3", [<q-args>])`
   );
 }
 
-async function openBuffer(denops: Denops, text: string): Promise<void> {
-  // const name = bufname.format({
-  //   scheme: "buffer",
-  //   // expr: Deno.cwd(),
-  //   expr: "S3",
-  //   params: {},
-  // });
-  // await denops.cmd("topleft 10split `=name`", {
-  //   name,
-  // });
+async function openBuffer(denops: Denops, bucketName: string): Promise<void> {
+  const bufferName = `Bucket:${bucketName}`;
   await denops.cmd(`topleft 10split ${bufferName}`);
 }
