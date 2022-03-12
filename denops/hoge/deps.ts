@@ -10,3 +10,8 @@ export * as option from "https://deno.land/x/denops_std@v2.0.0/option/mod.ts";
 export * as vars from "https://deno.land/x/denops_std@v2.0.0/variable/mod.ts";
 
 export * as unknownutil from "https://deno.land/x/unknownutil@v1.1.2/mod.ts";
+
+export {
+  decode as utf8Decode,
+  encode as utf8Encode,
+} from "https://deno.land/std@0.82.0/encoding/utf8.ts";
