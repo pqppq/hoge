@@ -7,40 +7,57 @@ import {
   fn,
   helper,
   mapping,
+  mapType,
   option,
   unknownutil,
   vars,
 } from "./deps.ts";
-import { getBuckets, getContents } from "./s3.ts";
+import * as action from "./action.ts";
+import * as s3 from "./s3.ts";
 
 export async function main(denops: Denops): Promise<void> {
   // commands
-  await denops.cmd(
-    `command! -nargs=? S3 call denops#notify("${denops.name}", "openBuffer", [<q-args>])`
-  );
+  const commands: string[] = [
+    // `command! -nargs=? S3 call denops#notify("${denops.name}", "s3", [<q-args>])`,
+    `command! S3 :e s3://buckets`,
+  ];
+
+  commands.forEach((cmd) => {
+    denops.cmd(cmd);
+  });
+
+  await autocmd.group(denops, "denops_s3", (helper) => {
+    helper.define(
+      "BufReadCmd",
+      "s3://buckets",
+      `call denops#notify("${denops.name}", "s3", [])`
+    );
+  });
 
   denops.dispatcher = {
-    // open new buffer
-    async openBuffer(bucketName?: unknown) {
-      if (!bucketName) {
-        bucketName = "*";
-      }
-      unknownutil.ensureString(bucketName);
-      await denops.cmd(`topleft 10split Bucket:${bucketName}`);
+    async inspectContents(): Promise<void> {
+      await action.inspect(denops);
+    },
 
-      let contents: string[];
-      if (bucketName == "*") {
-        contents = await getBuckets(denops);
-      } else {
-        contents = await getContents(denops, bucketName, "/");
-      }
+    // setup keymap
+    async s3(bucketName?: unknown): Promise<void> {
+      // const ft = "docker-containers";
+      // await denops.cmd(
+      //   `setlocal ft=${ft} buftype=nofile nowrap nomodifiable bufhidden=hide nolist nomodified`
+      // );
 
-      await batch.batch(denops, async (denops) => {
-        await option.modifiable.setLocal(denops, true);
-        await fn.setline(denops, 1, contents);
-        await option.modifiable.setLocal(denops, false);
-        await option.modified.setLocal(denops, false);
-      });
+      mapping.map(
+        denops,
+        "<CR>",
+        `:call denops#notify("${denops.name}", "inspectContents", [])<CR>`,
+        {
+          mode: "n",
+          buffer: true,
+          silent: true,
+          noremap: true,
+        }
+      );
+      await action.listBuckets(denops);
     },
   };
 }

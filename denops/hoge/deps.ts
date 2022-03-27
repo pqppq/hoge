@@ -6,8 +6,10 @@ export * as bufname from "https://deno.land/x/denops_std@v2.0.0/bufname/mod.ts";
 export * as fn from "https://deno.land/x/denops_std@v2.0.0/function/mod.ts";
 export * as helper from "https://deno.land/x/denops_std@v2.0.0/helper/mod.ts";
 export * as mapping from "https://deno.land/x/denops_std@v2.0.0/mapping/mod.ts";
+export * as mapType from "https://deno.land/x/denops_std@v2.0.0/mapping/types.ts";
 export * as option from "https://deno.land/x/denops_std@v2.0.0/option/mod.ts";
 export * as vars from "https://deno.land/x/denops_std@v2.0.0/variable/mod.ts";
+export * as path from "https://deno.land/std/path/mod.ts";
 
 export * as unknownutil from "https://deno.land/x/unknownutil@v1.1.2/mod.ts";
 
